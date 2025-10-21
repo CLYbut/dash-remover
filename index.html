@@ -24,6 +24,31 @@
             const inputText = document.getElementById('inputText').value;
             const outputText = inputText.replace(/-/g, ''); // Replaces all occurrences of '-'
             document.getElementById('output').innerText = outputText;
+       }
+
+        function copyToClipboard() {
+            const outputDiv = document.getElementById('output');
+            const formattedLines = Array.from(outputDiv.querySelectorAll('.output-line')).map(line => {
+                return line.querySelector('span').textContent;
+            });
+
+            const formattedText = formattedLines.join('\n');
+            const tempInput = document.createElement('textarea');
+            document.body.appendChild(tempInput);
+            tempInput.value = formattedText;
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+        }
+
+        function copyLineToClipboard(lineText) {
+            const tempInput = document.createElement('textarea');
+            document.body.appendChild(tempInput);
+            tempInput.value = lineText;
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+        }
         }
     </script>
 </body>
