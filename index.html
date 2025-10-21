@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -7,8 +6,9 @@
     <style>
         body { font-family: sans-serif; margin: 20px; }
         textarea { width: 100%; height: 150px; margin-bottom: 10px; padding: 10px; }
-        button { padding: 10px 20px; cursor: pointer; }
-        #output { border: 1px solid #ccc; padding: 10px; min-height: 50px; margin-top: 10px; }
+        button { padding: 10px 20px; cursor: pointer; margin-right: 10px; }
+        .line-container { display: flex; align-items: center; margin-bottom: 5px; }
+        .line-text { flex: 1; padding: 5px; border: 1px solid #ccc; }
     </style>
 </head>
 <body>
@@ -18,38 +18,37 @@
     <button onclick="removeDashes()">Remove Dashes</button>
     <h2>Result:</h2>
     <div id="output"></div>
-
+ 
     <script>
         function removeDashes() {
             const inputText = document.getElementById('inputText').value;
-            const outputText = inputText.replace(/-/g, ''); // Replaces all occurrences of '-'
-            document.getElementById('output').innerText = outputText;
-       }
-
-        function copyToClipboard() {
             const outputDiv = document.getElementById('output');
-            const formattedLines = Array.from(outputDiv.querySelectorAll('.output-line')).map(line => {
-                return line.querySelector('span').textContent;
+            outputDiv.innerHTML = '';
+ 
+            const lines = inputText.replace(/-/g, '').split('\n');
+            lines.forEach((line, index) => {
+                const container = document.createElement('div');
+                container.className = 'line-container';
+ 
+                const lineText = document.createElement('div');
+                lineText.className = 'line-text';
+                lineText.innerText = line;
+ 
+                const copyButton = document.createElement('button');
+                copyButton.innerText = 'Copy';
+                copyButton.onclick = () => {
+                    navigator.clipboard.writeText(line).then(() => {
+                        copyButton.innerText = 'Copied!';
+                        setTimeout(() => copyButton.innerText = 'Copy', 1000);
+                    });
+                };
+ 
+                container.appendChild(lineText);
+                container.appendChild(copyButton);
+                outputDiv.appendChild(container);
             });
-
-            const formattedText = formattedLines.join('\n');
-            const tempInput = document.createElement('textarea');
-            document.body.appendChild(tempInput);
-            tempInput.value = formattedText;
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-        }
-
-        function copyLineToClipboard(lineText) {
-            const tempInput = document.createElement('textarea');
-            document.body.appendChild(tempInput);
-            tempInput.value = lineText;
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-        }
         }
     </script>
 </body>
 </html>
+ 
