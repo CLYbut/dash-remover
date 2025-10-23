@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <title>Capture First Path Segment and Remove Dashes</title>
+  <title>Aprimo Content ID Fetcher</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <style>
     body { font-family: Arial, sans-serif; max-width: 900px; margin: 32px; line-height: 1.45; }
     label { display: block; margin-top: 12px; font-weight: bold; }
@@ -24,26 +25,27 @@
   </style>
 </head>
 <body>
-  <h3>Capture first path segment and remove dashes</h3>
+  <header>
+    <h1>Aprimo Content ID Fetcher</h1>
+    <h3>Capture content ID and remove dashes from media URLs.</h3>
+  </header>
 
   <label for="urlInput">Enter a URL</label>
-  <input id="urlInput" type="text" placeholder="https://media.copeland.com/b852c6c0-8d76-40f8-9b40-b16d002d54d4/..." />
+  <input id="urlInput" type="text" />
 
   <div class="controls">
     <button id="captureBtn">Capture</button>
   </div>
 
-  <label for="capturedBox">Captured segment (first path segment)</label>
-  <textarea id="capturedBox" readonly placeholder="Captured segment appears here"></textarea>
+  <label for="capturedBox">Captured Content ID (first path segment)</label>
+  <textarea id="capturedBox" readonly></textarea>
 
-  <label for="cleanBox">Cleaned segment (dashes removed)</label>
-  <textarea id="cleanBox" readonly placeholder="Cleaned segment appears here"></textarea>
+  <label for="cleanBox">Cleaned Content ID (dashes removed)</label>
+  <textarea id="cleanBox" readonly></textarea>
 
   <div class="controls" style="margin-top:8px;">
-    <button id="copyCleanBtn" disabled>Copy Cleaned</button>
+    <button id="copyCleanBtn" disabled>Copy Cleaned Content ID</button>
   </div>
-
-  <div class="small">Behavior: the code extracts the first non-empty path segment of the URL then removes all dashes from that segment. This code works for media URLs only.</div>
 
   <script>
     const urlInput = document.getElementById('urlInput');
@@ -58,10 +60,17 @@
         const parts = u.pathname.split('/').filter(Boolean);
         return parts.length ? parts[0] : '';
       } catch (e) {
-        const parts = raw.split('/').filter(part => part !== '');
-        if (parts.length >= 3) return parts[2];
-        if (parts.length >= 1) return parts[0];
-        return '';
+        const normalized = raw.startsWith('http') ? raw : 'https://' + raw;
+        try {
+          const u2 = new URL(normalized);
+          const parts2 = u2.pathname.split('/').filter(Boolean);
+          return parts2.length ? parts2[0] : '';
+        } catch {
+          const parts = raw.split('/').filter(part => part !== '');
+          if (parts.length >= 3) return parts[2];
+          if (parts.length >= 1) return parts[0];
+          return '';
+        }
       }
     }
 
@@ -114,6 +123,8 @@
         captureBtn.click();
       }
     });
+
+    document.title = 'Aprimo Content ID Fetcher';
   </script>
 </body>
 </html>
