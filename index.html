@@ -1,55 +1,119 @@
+<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dash Remover</title>
-    <style>
-        body { font-family: sans-serif; margin: 20px; }
-        textarea { width: 100%; height: 150px; margin-bottom: 10px; padding: 10px; }
-        button { padding: 10px 20px; cursor: pointer; background-color: #3155a4; border-style: none; color: #ffffff; margin-right: 10px; }
-        .line-container { display: flex; align-items: center; margin-bottom: 5px; }
-        .line-text { flex: 1; padding: 5px; border: 1px solid #ccc; }
-       
-    </style>
+  <meta charset="utf-8" />
+  <title>Capture First Path Segment and Remove Dashes</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 900px; margin: 32px; line-height: 1.45; }
+    label { display: block; margin-top: 12px; font-weight: bold; }
+    input[type="text"] { width: 100%; padding: 10px; font-size: 14px; box-sizing: border-box; }
+    .controls { margin-top: 12px; }
+    button {
+      padding: 10px 14px;
+      font-size: 14px;
+      margin-right: 8px;
+      cursor: pointer;
+      border: none;
+      border-radius: 4px;
+      background-color: #007bff;
+      color: #fff;
+    }
+    button:disabled { opacity: 0.6; cursor: default; }
+    textarea { width: 100%; padding: 10px; font-size: 14px; box-sizing: border-box; margin-top: 8px; resize: vertical; min-height: 44px; }
+    .small { font-size: 13px; color: #555; margin-top: 6px; }
+  </style>
 </head>
 <body>
-    <h1>Dash Remover</h1>
-    <p>Enter your text below, and dashes will be removed.</p>
-    <textarea id="inputText" placeholder="Type or paste your text here..."></textarea>
-    <button onclick="removeDashes()">Remove Dashes</button>
-    <h2>Result:</h2>
-    <div id="output"></div>
- 
-    <script>
-        function removeDashes() {
-            const inputText = document.getElementById('inputText').value;
-            const outputDiv = document.getElementById('output');
-            outputDiv.innerHTML = '';
- 
-            const lines = inputText.replace(/-/g, '').split('\n');
-            lines.forEach((line, index) => {
-                const container = document.createElement('div');
-                container.className = 'line-container';
- 
-                const lineText = document.createElement('div');
-                lineText.className = 'line-text';
-                lineText.innerText = line;
- 
-                const copyButton = document.createElement('button');
-                copyButton.innerText = 'Copy';
-                copyButton.onclick = () => {
-                    navigator.clipboard.writeText(line).then(() => {
-                        copyButton.innerText = 'Copied!';
-                        setTimeout(() => copyButton.innerText = 'Copy', 1000);
-                    });
-                };
- 
-                container.appendChild(lineText);
-                container.appendChild(copyButton);
-                outputDiv.appendChild(container);
-            });
-        }
-    </script>
+  <h3>Capture first path segment and remove dashes</h3>
+
+  <label for="urlInput">Enter a URL</label>
+  <input id="urlInput" type="text" placeholder="https://media.copeland.com/b852c6c0-8d76-40f8-9b40-b16d002d54d4/..." />
+
+  <div class="controls">
+    <button id="captureBtn">Capture</button>
+  </div>
+
+  <label for="capturedBox">Captured segment (first path segment)</label>
+  <textarea id="capturedBox" readonly placeholder="Captured segment appears here"></textarea>
+
+  <label for="cleanBox">Cleaned segment (dashes removed)</label>
+  <textarea id="cleanBox" readonly placeholder="Cleaned segment appears here"></textarea>
+
+  <div class="controls" style="margin-top:8px;">
+    <button id="copyCleanBtn" disabled>Copy Cleaned</button>
+  </div>
+
+  <div class="small">Behavior: the code extracts the first non-empty path segment of the URL then removes all dashes from that segment</div>
+
+  <script>
+    const urlInput = document.getElementById('urlInput');
+    const captureBtn = document.getElementById('captureBtn');
+    const copyCleanBtn = document.getElementById('copyCleanBtn');
+    const capturedBox = document.getElementById('capturedBox');
+    const cleanBox = document.getElementById('cleanBox');
+
+    function getFirstPathSegment(raw) {
+      try {
+        const u = new URL(raw);
+        const parts = u.pathname.split('/').filter(Boolean);
+        return parts.length ? parts[0] : '';
+      } catch (e) {
+        const parts = raw.split('/').filter(part => part !== '');
+        if (parts.length >= 3) return parts[2];
+        if (parts.length >= 1) return parts[0];
+        return '';
+      }
+    }
+
+    function removeDashes(str) {
+      return str.replace(/-/g, '');
+    }
+
+    captureBtn.addEventListener('click', () => {
+      const raw = urlInput.value.trim();
+      if (!raw) {
+        capturedBox.value = 'Please enter a URL.';
+        cleanBox.value = '';
+        copyCleanBtn.disabled = true;
+        return;
+      }
+
+      const captured = getFirstPathSegment(raw);
+      if (!captured) {
+        capturedBox.value = "No path segment found in the provided URL.";
+        cleanBox.value = '';
+        copyCleanBtn.disabled = true;
+        return;
+      }
+
+      const cleaned = removeDashes(captured);
+
+      capturedBox.value = captured;
+      cleanBox.value = cleaned;
+      copyCleanBtn.disabled = cleaned === '';
+    });
+
+    copyCleanBtn.addEventListener('click', async () => {
+      const text = cleanBox.value;
+      if (!text) return;
+      try {
+        await navigator.clipboard.writeText(text);
+        copyCleanBtn.textContent = 'Copied';
+        setTimeout(() => copyCleanBtn.textContent = 'Copy Cleaned', 1500);
+      } catch {
+        cleanBox.select();
+        document.execCommand('copy');
+        copyCleanBtn.textContent = 'Copied';
+        setTimeout(() => copyCleanBtn.textContent = 'Copy Cleaned', 1500);
+      }
+    });
+
+    urlInput.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') {
+        e.preventDefault();
+        captureBtn.click();
+      }
+    });
+  </script>
 </body>
 </html>
- 
